@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="🇺🇦">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        :root {
+            --ukraine-blue: #0057b7;
+            --ukraine-yellow: #ffd700;
+        }
+        body {
+            margin: 0;
+            height: 100vh;
+            background: #000;
+            overflow: hidden;
+            touch-action: none;
+        }
+        .matrix-layer {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: space-around;
+            pointer-events: none;
+        }
+        .column {
+            position: relative;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            line-height: 1;
+            white-space: nowrap;
+            animation: matrix-fall linear infinite;
+        }
+        .blue { color: var(--ukraine-blue); text-shadow: 0 0 8px var(--ukraine-blue); }
+        .yellow { color: var(--ukraine-yellow); text-shadow: 0 0 8px var(--ukraine-yellow); }
+        .bright { color: #fff; text-shadow: 0 0 12px #fff; }
+
+        @keyframes matrix-fall {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        .menu-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+            pointer-events: auto;
+            width: min(240px, 85vw);
+            box-sizing: border-box;
+        }
+
+        .menu-btn {
+            display: block;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            color: #fff;
+            padding: 12px 16px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .menu-btn:hover,
+        .menu-btn:active {
+            background: rgba(255, 255, 255, 0.26);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.02);
+        }
+
+        @media (min-width: 700px) {
+            .menu-container {
+                width: 520px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .menu-btn {
+                width: calc(50% - 5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="base-layer" class="matrix-layer"></div>
+
+    <div class="menu-container">
+        <a href="http://button1.com" class="menu-btn" onclick="return confirmLink('http://button1.com')">Button 1</a>
+        <a href="http://button2.com" class="menu-btn" onclick="return confirmLink('http://button2.com')">Button 2</a>
+        <a href="http://button3.com" class="menu-btn" onclick="return confirmLink('http://button3.com')">Button 3</a>
+        <a href="http://button4.com" class="menu-btn" onclick="return confirmLink('http://button4.com')">Button 4</a>
+    </div>
+
+    <script>
+        const ukrainianCyrillic = 'АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгґдеєжзиіїйклмнопрстуфхцчшщьюя';
+        let layerCount = 0;
+        const maxLayers = 10;
+        let isThrottled = false;
+
+        function confirmLink(url) {
+            return confirm('Do you want to open this link?\n' + url) ? (window.location.href = url, false) : false;
+        }
+
+        function createColumn() {
+            const col = document.createElement('div');
+            col.className = 'column';
+            const duration = Math.random() * 3 + 1.5;
+            const delay = Math.random() * -20;
+            col.style.animationDuration = duration + 's';
+            col.style.animationDelay = delay + 's';
+
+            let content = '';
+            const length = Math.floor(Math.random() * 25 + 10);
+            for (let i = 0; i < length; i++) {
+                const char = ukrainianCyrillic[Math.floor(Math.random() * ukrainianCyrillic.length)];
+                let colorClass = Math.random() > 0.5 ? 'blue' : 'yellow';
+                if (i === 0) colorClass = 'bright';
+                content += `<span class="${colorClass}">${char}</span>`;
+            }
+            col.innerHTML = content;
+            return col;
+        }
+
+        function addLayer() {
+            if (layerCount >= maxLayers) return;
+
+            const layer = document.createElement('div');
+            layer.className = 'matrix-layer extra-layer';
+            const columns = Math.floor(window.innerWidth / 25);
+
+            for (let i = 0; i < columns; i++) {
+                layer.appendChild(createColumn());
+            }
+
+            document.body.appendChild(layer);
+            layerCount++;
+
+            setTimeout(() => {
+                layer.remove();
+                layerCount--;
+            }, 5000);
+        }
+
+        function handleInteraction() {
+            if (isThrottled) return;
+            isThrottled = true;
+            addLayer();
+            setTimeout(() => { isThrottled = false; }, 150);
+        }
+
+        function initBase() {
+            const base = document.getElementById('base-layer');
+            base.innerHTML = '';
+            const columns = Math.floor(window.innerWidth / 22);
+            for (let i = 0; i < columns; i++) {
+                base.appendChild(createColumn());
+            }
+        }
+
+        initBase();
+        window.addEventListener('mousemove', handleInteraction);
+        window.addEventListener('touchmove', handleInteraction);
+        window.addEventListener('mousedown', handleInteraction);
+        window.addEventListener('resize', initBase);
+
+        setInterval(() => {
+            const spans = document.querySelectorAll('.column span');
+            if (spans.length > 0) {
+                const batchSize = Math.min(spans.length, 20);
+                for (let i = 0; i < batchSize; i++) {
+                    const target = spans[Math.floor(Math.random() * spans.length)];
+                    target.textContent = ukrainianCyrillic[Math.floor(Math.random() * ukrainianCyrillic.length)];
+                }
+            }
+        }, 50);
+    </script>
+</body>
+</html>
